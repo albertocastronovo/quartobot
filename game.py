@@ -156,15 +156,15 @@ class Board:
 
 
 class Game:
-    def __init__(self, player_1, player_2):
+    def __init__(self, player_1, player_2, first_player: int = 1):
         self.__board = Board()
         self.__id = str(uuid4())
         self.__p1 = player_1
         self.__p2 = player_2
-        self.__turn: int = 1    # 1 for player 1, 2 for player 2
-        self.__stage: int = 1   # 1 for selection, 2 for placement
-        self.__state: int = 0   # 0 = in progress, 1 = player 1 won, 2 = player 2 won, 3 = draw
-        self.__win_cond: int = 0    # 1 row, 2 col, 3 d1, 4 d2
+        self.__turn: int = first_player     # 1 for player 1, 2 for player 2
+        self.__stage: int = 1               # 1 for selection, 2 for placement
+        self.__state: int = 0               # 0 = in progress, 1 = player 1 won, 2 = player 2 won, 3 = draw
+        self.__win_cond: int = 0            # 1 row, 2 col, 3 d1, 4 d2
         self.__last_xy: tuple = (0, 0)
         self.__last_selected_piece: Piece = Piece("NULL")
         self.__last_message = "default"
@@ -231,6 +231,9 @@ class Game:
     @property
     def last_selected_piece(self):
         return self.__last_selected_piece
+
+    def get_players(self) -> tuple[int, int]:
+        return int(self.__p1), int(self.__p2)
 
     def set_pieces(self, new_pieces: dict[str, Piece]):
         self.__pieces = dict(new_pieces)
