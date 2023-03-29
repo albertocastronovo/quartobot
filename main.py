@@ -17,6 +17,8 @@ assert sys.version_info >= (3, 10)
 
 print(f"Executing Python version: {sys.version}")
 
+ispc = u"\u200B"
+
 this_dir = os.path.dirname(__file__)
 relative_token = "../../Desktop/quarto_token.txt"
 absolute_token = os.path.join(this_dir, relative_token)
@@ -432,14 +434,43 @@ async def myrank(context):
 
 
 @bot.command(pass_context=True, aliases=["mystats", "wr"])
-async def stats(context, *args):
-    print(args[0])
+async def stats(context, *args: User):
+    embed = Embed(
+        title="Game statistics",
+        description="Wins, losses and win ratios",
+        color=0xf73718
+    )
 
-    if len(args) < 0:   # only print data for single user
-        pass
-    else:               # print data for all mentioned users
-        for arg in args:
-            print(arg.id)
+    if len(args) < 1:
+        user_list = [context.message.author]
+    else:
+        user_list = args
+
+    for u in user_list:
+        name = u.display_name
+        player_id = u.id
+        if player_id in ratings:
+            elo = str(ratings[player_id]["elo"])
+            wins = str(ratings[player_id]["wins"])
+            losses = str(ratings[player_id]["losses"])
+            try:
+                win_ratio = f"{float(wins) * 100.0 / (float(wins) + float(losses)):.1f}%"
+            except ZeroDivisionError:
+                win_ratio = "0.0%"
+        else:
+            elo = "Unranked"
+            wins = "0"
+            losses = "0"
+            win_ratio = "0.0%"
+
+        embed.add_field(
+            name=f"{name}, {elo} ELO",
+            value=f"```Wins:　{wins.ljust(8)}Losses:　{losses.ljust(8)}Win ratio:　{win_ratio}```",
+            inline=False
+        )
+
+    await context.send(embed=embed)
+
 
 async def print_leaderboard(context, formatted_embed: Embed, start_pos: int = 1, end_pos: int = 1):
     if len(leaderboard) == 0:             # if no players are present in the leaderboard
@@ -612,7 +643,7 @@ def end_game_by_victory(selected_game: Game, victory_by: int, victory_code: int,
     del active_games[p1][p2]
     if not active_games[p1]:
         del active_games[p1]
-
+    update_leaderboard()
     return view, content
 
 
